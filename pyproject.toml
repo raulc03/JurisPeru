@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "02_project"
+version = "0.1.0"
+description = "RAG Robusto"
+authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
+readme = "README.md"
+license = "MIT"
+packages = [{ include = "app", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.116.1"
+langchain = "^0.3.27"
+langchain-anthropic = "^0.3.19"
+pydantic = "^2.11.7"
+pydantic-settings = "^2.10.1"
+uvicorn = {extras = ["standard"], version = "^0.35.0"}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+black = "^25.1.0"
+ruff = "^0.12.9"
+mypy = "^1.17.1"
+pytest-cov = "^6.2.1"
+pre-commit = "^4.3.0"
+langchain-community = "^0.3.27"
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
