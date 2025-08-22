@@ -5,4 +5,4 @@ from app.api.routes import health
 setup_logging()
 app = FastAPI(title="02 Project")
 
-app.include_router(prefix="/api", router=health.router)
+app.include_router(router=health.router, prefix="/api")
