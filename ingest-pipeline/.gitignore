@@ -1,0 +1,13 @@
+__pycache__/
+
+.env*
+
+chroma_db/
+
+documents/
+
+*.pdf
+
+nohup.out
+
+logs/

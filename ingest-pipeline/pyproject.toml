@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "rag-ingestion-pipeline"
+version = "0.1.0"
+description = "RAG Robusto"
+authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
+readme = "README.md"
+packages = [
+    { include = "pipelines", from = "src"}
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.14"
+langchain = "^0.3.27"
+langchain-anthropic = "^0.3.19"
+langchain-huggingface = "^0.3.1"
+langchain-chroma = "^0.2.5"
+langchain-community = "^0.3.27"
+sentence-transformers = "^5.1.0"
+pydantic-settings = "^2.10.1"
+pypdf = "^6.0.0"
+pinecone = "^7.3.0"
+prefect = "^3.4.14"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+black = "^25.1.0"
+ruff = "^0.12.9"
+mypy = "^1.17.1"
+pytest-cov = "^6.2.1"
+pre-commit = "^4.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
+
