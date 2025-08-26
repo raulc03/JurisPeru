@@ -1,10 +1,10 @@
 llm:
-  name: claude-3-5-haiku-latest
   provider: anthropic
+  name: claude-3-5-haiku-latest
 
 vector_store:
-  index_name: 02-project-index
   provider: pinecone
+  index_name: 02-project-index
 
 embedding:
   provider: huggingface

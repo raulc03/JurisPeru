@@ -9,9 +9,9 @@ description = "RAG Robusto"
 authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
 readme = "README.md"
 packages = [
-    { include = "shared" },
+    { include = "shared", from = "shared/src" },
     { include = "app", from = "api-service/src" },
-    { include = "pipelines", from = "pipeline-service/src" }
+    { include = "pipelines", from = "ingest-pipeline/src" }
 ]
 
 # Main dependencies (exists 2+ subprojects)

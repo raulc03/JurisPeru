@@ -1,14 +1,40 @@
 from functools import lru_cache
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
-    INDEX_NAME: str = "02-project-index"
-    PINECONE_API_KEY: str | None = None
-    HUGGINGFACE_EMBEDDING_MODEL: str = "sentence-transformers/all-roberta-large-v1"
-    MODEL_SIZE: int = 1024
+class LLMConfig(BaseModel):
+    name: str = "claude-3-5-haiku-latest"
+    provider: str = "anthropic"
 
-    model_config = SettingsConfigDict(env_file=".env")
+
+class VectorStoreConfig(BaseModel):
+    index_name: str = "02-project-index"
+    provider: str = "pinecone"
+
+
+class EmbeddingConfig(BaseModel):
+    provider: str = "huggingface"
+    model: str = "sentence-transformers/all-roberta-large-v1"
+    size: int = 1024
+
+
+class Settings(BaseSettings):
+    # LLM configs
+    llm: LLMConfig = LLMConfig()
+    LLM_API_KEY: str | None = Field(default=None)
+
+    # VectorStore configs
+    vector_store: VectorStoreConfig = VectorStoreConfig()
+    VS_API_KEY: str | None = Field(default=None)  # Vector Store API KEY
+
+    # Embedding config
+    embedding: EmbeddingConfig = EmbeddingConfig()
+
+    # LangSmith config
+    LANGSMITH_API_KEY: str | None = Field(default=None)
+
+    model_config = SettingsConfigDict(env_file="../.env", yaml_file="../config.yaml")
 
 
 @lru_cache

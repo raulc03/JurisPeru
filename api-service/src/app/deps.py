@@ -1,4 +1,3 @@
-from functools import lru_cache
 from typing import Annotated
 from fastapi import Depends
 
@@ -9,7 +8,6 @@ from app.services.rag_service import RagService
 SettingsDep = Annotated[Settings, Depends(getSettings)]
 
 
-@lru_cache
 def get_rag_service(settings: SettingsDep):
     return RagService(settings)
 

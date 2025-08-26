@@ -5,10 +5,12 @@ description = "RAG Robusto"
 authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
 readme = "README.md"
 packages = [
-    { include = "pipelines", from = "src"}
+    { include = "pipelines", from = "src" }
 ]
 
 [tool.poetry.dependencies]
+shared = { path = "../shared", develop = true}
+
 python = ">=3.11,<3.14"
 langchain = "^0.3.27"
 langchain-anthropic = "^0.3.19"

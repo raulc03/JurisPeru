@@ -30,7 +30,7 @@ class EmbeddingService:
                 from pipelines.config.settings import getSettings
 
                 return HuggingFaceEmbeddings(
-                    model_name=getSettings().HUGGINGFACE_EMBEDDING_MODEL, model_kwargs=model_kwargs
+                    model_name=getSettings().embedding.model, model_kwargs=model_kwargs
                 )
         else:
             from langchain_huggingface import HuggingFaceEmbeddings

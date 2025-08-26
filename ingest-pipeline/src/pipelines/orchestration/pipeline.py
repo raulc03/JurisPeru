@@ -8,6 +8,7 @@ from prefect import flow, task
 from prefect.task_runners import ConcurrentTaskRunner
 
 from pipelines.config.logging import setup_logging
+from pipelines.config.settings import getSettings
 from pipelines.embeddings.Embeddings import EmbeddingService
 from pipelines.loaders.pdf_loader import PDFLoader
 from pipelines.processors.text_processor import TextProcessor
@@ -63,8 +64,7 @@ def get_embedding(provider: Literal["huggingface"] | None, model: str | None = N
 
 @task
 async def store_documents(
-    database: Literal["chroma", "pinecone"],
-    embedding_function: Embeddings,
+    embedding: Embeddings,
     documents: List[Document],
 ):
     """
@@ -75,7 +75,7 @@ async def store_documents(
         embedding_function (Embeddings): The embedding function to use.
         documents (List[Document]): The documents to store.
     """
-    return await StorageManager(database, embedding_function).store_async(documents)
+    return await StorageManager(getSettings(), embedding).store_documents(documents)
 
 
 @flow(task_runner=ConcurrentTaskRunner())  # type:ignore
@@ -103,11 +103,9 @@ async def document_processing_flow(documents_path: Path):
         chunk = process_documents(doc)  # type:ignore
         all_chunks.extend(chunk)
 
-    embedding_function = get_embedding("huggingface")
+    embedding = get_embedding("huggingface")
 
-    result = await store_documents(
-        database="pinecone", embedding_function=embedding_function, documents=all_chunks
-    )
+    result = await store_documents(embedding=embedding, documents=all_chunks)
 
     return result
 

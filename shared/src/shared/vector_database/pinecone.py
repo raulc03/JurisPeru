@@ -1,3 +1,4 @@
+import logging
 import time
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
@@ -5,6 +6,8 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_core.documents.base import Document
 from shared.interfaces.vector_store import VectorStoreClient
 from pinecone import Pinecone, ServerlessSpec
+
+logger = logging.getLogger(__name__)
 
 
 class PineconeService(VectorStoreClient):
@@ -31,6 +34,7 @@ class PineconeService(VectorStoreClient):
         )
 
     async def store_documents(self, documents: list[Document]) -> list[str]:
+        logger.info(f"Adding {len(documents)} to the vector db.")
         return await self.vector_store.aadd_documents(documents)
 
     async def retrieve(self, query: str, search_type: str) -> list[Document]:
