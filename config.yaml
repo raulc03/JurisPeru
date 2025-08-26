@@ -1,0 +1,12 @@
+llm:
+  name: claude-3-5-haiku-latest
+  provider: anthropic
+
+vector_store:
+  index_name: 02-project-index
+  provider: pinecone
+
+embedding:
+  provider: huggingface
+  model: sentence-transformers/all-roberta-large-v1
+  size: 1024
