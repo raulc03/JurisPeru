@@ -17,7 +17,7 @@ coverage:
 	poetry run pytest tests --cov=src --cov-report=html --cov-fail-under=70
 
 run:
-	poetry run uvicorn src.app.main:app --reload
+	poetry run uvicorn src.app.main:app --host 0.0.0.0 --reload
 
 precommit-install:
 	poetry run pre-commit install

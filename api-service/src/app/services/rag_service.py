@@ -1,3 +1,4 @@
+from typing import Any
 from langchain_core.documents.base import Document
 from langchain_core.runnables import Runnable
 from shared.interfaces.vector_store import VectorStoreClient
@@ -82,3 +83,16 @@ class RagService:
 
         else:
             return "No context found", None
+
+    async def run_rag_pipeline_stream(self, ask_request: AskRequest, retrieval_type: str) -> Any:
+        query = ask_request.query
+        retrieved_docs = await self.vs_client.retrieve(query, retrieval_type)
+
+        if retrieved_docs:
+            chain = self.rag_prompt | self.chat_llm
+
+            stream = chain.astream(
+                {"question": query, "context": retrieved_docs}, temperature=ask_request.temperature
+            )
+            async for chunk in stream:
+                yield chunk.text()

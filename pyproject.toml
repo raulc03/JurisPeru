@@ -28,6 +28,7 @@ pydantic-settings = "^2.10.1"
 
 # Api dependencies
 langsmith = "^0.4.16"
+streamlit = "^1.48.1"
 [tool.poetry.group.api.dependencies]
 fastapi = "^0.116.1"
 uvicorn = {extras = ["standard"], version = "^0.35.0"}
