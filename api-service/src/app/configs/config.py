@@ -11,6 +11,7 @@ class LLMConfig(BaseModel):
 class VectorStoreConfig(BaseModel):
     index_name: str = "02-project-index"
     provider: str = "pinecone"
+    rerank_top_n: int = 5
 
 
 class EmbeddingConfig(BaseModel):

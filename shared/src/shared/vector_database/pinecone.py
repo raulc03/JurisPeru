@@ -4,6 +4,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
 from langchain_pinecone import PineconeVectorStore
 from langchain_core.documents.base import Document
+from langchain_pinecone.rerank import PineconeRerank
 from shared.interfaces.vector_store import VectorStoreClient
 from pinecone import Pinecone, ServerlessSpec
 
@@ -12,7 +13,12 @@ logger = logging.getLogger(__name__)
 
 class PineconeService(VectorStoreClient):
     def __init__(
-        self, embedding_function: Embeddings, api_key: str, index_name: str, model_size: int
+        self,
+        embedding_function: Embeddings,
+        api_key: str,
+        index_name: str,
+        model_size: int,
+        rerank_top_n: int,
     ):
         pc: Pinecone = Pinecone(api_key=api_key)
         existing_indexes = [index_info["name"] for index_info in pc.list_indexes()]
@@ -33,9 +39,21 @@ class PineconeService(VectorStoreClient):
             index=index, embedding=embedding_function
         )
 
+        from pydantic import SecretStr
+
+        # Convert the api_key string to a SecretStr
+        api_key_secret = SecretStr(api_key)
+        self.rerank = PineconeRerank(client=pc, pinecone_api_key=api_key_secret, top_n=rerank_top_n)
+
     async def store_documents(self, documents: list[Document]) -> list[str]:
         logger.info(f"Adding {len(documents)} to the vector db.")
         return await self.vector_store.aadd_documents(documents)
 
-    async def retrieve(self, query: str, search_type: str) -> list[Document]:
-        return await self.vector_store.asearch(query, search_type)
+    async def retrieve(self, query: str, search_type: str, k: int) -> list[Document]:
+        retrieved_docs = await self.vector_store.asearch(query, search_type, k=k)
+
+        return retrieved_docs
+
+    async def rerank_context(self, documents: list[Document], query: str) -> list[dict]:
+        rerank_documents = await self.rerank.arerank(documents=documents, query=query)
+        return rerank_documents

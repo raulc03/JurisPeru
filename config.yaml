@@ -5,6 +5,7 @@ llm:
 vector_store:
   provider: pinecone
   index_name: 02-project-index
+  rerank_top_n: 5
 
 embedding:
   provider: huggingface

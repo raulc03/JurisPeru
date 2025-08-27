@@ -22,7 +22,7 @@ class VectorStoreClient(ABC):
         pass
 
     @abstractmethod
-    async def retrieve(self, query: str, search_type: str) -> list[Document]:
+    async def retrieve(self, query: str, search_type: str, k: int) -> list[Document]:
         """
         Retrieve documents from the vector store based on a query and search type.
 
@@ -32,5 +32,19 @@ class VectorStoreClient(ABC):
 
         Returns:
             list[Document]: A list of documents matching the query.
+        """
+        pass
+
+    @abstractmethod
+    async def rerank_context(self, documents: list[Document], query: str) -> list[dict]:
+        """
+        Abstract method to rerank a list of documents based on a query.
+
+        Args:
+            documents (list[Document]): The list of Document objects to be reranked.
+            query (str): The query string used to rerank the documents.
+
+        Returns:
+            list[dict]: A list of dictionaries representing the reranked documents.
         """
         pass

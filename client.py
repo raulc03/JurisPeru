@@ -1,11 +1,11 @@
 import requests
 import streamlit as st
 
-st.title("Te amo Liliana! <3")
+st.title("Preguntas y Respuesta sobre Códigos legales")
 
-query = st.text_input("Realiza tu pregunta")
+query = st.text_area("Realiza tu pregunta")
 
-payload = {"query": "", "k": 10, "rerank": False, "temperature": 0.7, "stream": True}
+payload = {"query": "", "k": 15, "rerank": True, "temperature": 0.8, "stream": True}
 
 
 def stream_data(query):
@@ -16,12 +16,10 @@ def stream_data(query):
                 yield chunk.decode("utf-8")
 
 
-if st.button("Enviar"):
+if st.button("Enviar") or query:
     show_response = True
 else:
     show_response = False
-
-st.subheader("Respuesta", divider="gray")
 
 if show_response:
     st.write_stream(stream_data(query))

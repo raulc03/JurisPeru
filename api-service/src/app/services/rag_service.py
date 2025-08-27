@@ -1,18 +1,22 @@
-from typing import Any
+import logging
+import json
+from typing import AsyncGenerator, List, Tuple
 from langchain_core.documents.base import Document
-from langchain_core.runnables import Runnable
 from shared.interfaces.vector_store import VectorStoreClient
 from langchain_core.embeddings import Embeddings
 from langchain.chat_models import init_chat_model
+from langchain_core.prompts import ChatPromptTemplate
 
 from app.configs.config import Settings
 from app.schemas.ask import AskRequest
+from app.prompts.ask import rag_prompt
+
+logger = logging.getLogger(__name__)
 
 
 class RagService:
     """
     Service class for handling Retrieval-Augmented Generation (RAG) operations.
-
     This class initializes embedding and vector store services based on the provided settings.
     """
 
@@ -37,6 +41,7 @@ class RagService:
                     settings.VS_API_KEY,
                     settings.vector_store.index_name,
                     settings.embedding.size,
+                    rerank_top_n=settings.vector_store.rerank_top_n,
                 )
             else:
                 raise EnvironmentError("VS_API_KEY not found")
@@ -51,48 +56,65 @@ class RagService:
         else:
             raise EnvironmentError("LLM_API_KEY not found")
 
-        if settings.LANGSMITH_API_KEY:
-            from langsmith import Client
+        self.rag_prompt: ChatPromptTemplate = rag_prompt
 
-            self.rag_prompt = Client(api_key=settings.LANGSMITH_API_KEY).pull_prompt(
-                "rlm/rag-prompt"
-            )
-        else:
-            raise EnvironmentError(
-                "LANGSMITH_API_KEY not found in environment variables or .env file"
-            )
+    async def _retrieve_and_rerank(
+        self, ask_request: AskRequest, retrieval_type: str
+    ) -> List[Document] | List[dict]:
+        """
+        Retrieve documents using the vector store client and optionally rerank them.
+        """
+        docs = await self.vs_client.retrieve(ask_request.query, retrieval_type, ask_request.k)
+        if ask_request.rerank:
+            docs = await self.vs_client.rerank_context(docs, ask_request.query)
+
+        return docs
 
     async def run_rag_pipeline(
         self, ask_request: AskRequest, retrieval_type: str
-    ) -> tuple[str, list[Document] | None]:
+    ) -> Tuple[str, List[Document] | List[dict]]:
         """
-        Executes a RAG (Retrieval-Augmented Generation) pipeline:
-        - Retrieves relevant documents for the input query using the specified retrieval_type.
-        - Generates an LLM response based on the retrieved context and query.
-        Returns the LLM response content and the list of retrieved documents (if any).
+        Executes a RAG pipeline: retrieves documents and generates an LLM response.
+        Returns the response and retrieved documents.
         """
-        query = ask_request.query
-        retrieved_docs = await self.vs_client.retrieve(query, retrieval_type)
-
-        if retrieved_docs:
-            chain: Runnable = self.rag_prompt | self.chat_llm
-            llm_response = await chain.ainvoke(
-                {"question": query, "context": retrieved_docs}, temperature=ask_request.temperature
-            )
-            return llm_response.content, retrieved_docs
-
-        else:
-            return "No context found", None
-
-    async def run_rag_pipeline_stream(self, ask_request: AskRequest, retrieval_type: str) -> Any:
-        query = ask_request.query
-        retrieved_docs = await self.vs_client.retrieve(query, retrieval_type)
-
+        retrieved_docs = await self._retrieve_and_rerank(ask_request, retrieval_type)
         if retrieved_docs:
             chain = self.rag_prompt | self.chat_llm
+            llm_response = await chain.ainvoke(
+                {
+                    "question": ask_request.query,
+                    "context": retrieved_docs,
+                    "language": ask_request.language,
+                },
+                temperature=ask_request.temperature,
+            )
+            answer = llm_response.content
+            if isinstance(answer, str):
+                result = answer
+            elif isinstance(answer, dict):
+                result = json.dumps(answer)
+            else:
+                raise TypeError(f"Unsopported content type: {type(answer)}")
+            return result, retrieved_docs
+        else:
+            return "No context found", []
 
+    async def run_rag_pipeline_stream(
+        self, ask_request: AskRequest, retrieval_type: str
+    ) -> AsyncGenerator[str, None]:
+        """
+        Executes a streaming RAG pipeline: yields LLM response chunks.
+        """
+        retrieved_docs = await self._retrieve_and_rerank(ask_request, retrieval_type)
+        if retrieved_docs:
+            chain = self.rag_prompt | self.chat_llm
             stream = chain.astream(
-                {"question": query, "context": retrieved_docs}, temperature=ask_request.temperature
+                {
+                    "question": ask_request.query,
+                    "context": retrieved_docs,
+                    "language": ask_request.language,
+                },
+                temperature=ask_request.temperature,
             )
             async for chunk in stream:
                 yield chunk.text()
