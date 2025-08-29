@@ -14,14 +14,10 @@ logger = logging.getLogger(__name__)
 @router.post("/", response_model=AskResponse)
 async def ask(request: AskRequest, rag: RagDep) -> Any:
     try:
-        if not request.stream:
-            response, contexts = await rag.run_rag_pipeline(request, "mmr")
-            return AskResponse(answer=response, contexts=contexts)
-        else:
-            return StreamingResponse(
-                rag.run_rag_pipeline_stream(request, "mmr"),  # type:ignore
-                media_type="text/plain",
-            )
+        return StreamingResponse(
+            rag.run_rag_pipeline_stream(request, "mmr"),
+            media_type="text/event-stream",
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     except Exception as e:

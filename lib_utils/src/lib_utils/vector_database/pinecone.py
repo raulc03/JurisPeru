@@ -5,7 +5,7 @@ from langchain_core.vectorstores import VectorStore
 from langchain_pinecone import PineconeVectorStore
 from langchain_core.documents.base import Document
 from langchain_pinecone.rerank import PineconeRerank
-from shared.interfaces.vector_store import VectorStoreClient
+from lib_utils.interfaces.vector_store import VectorStoreClient
 from pinecone import Pinecone, ServerlessSpec
 
 logger = logging.getLogger(__name__)

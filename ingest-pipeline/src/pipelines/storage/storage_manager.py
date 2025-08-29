@@ -21,12 +21,13 @@ class StorageManager:
         if settings.vector_store.provider == "pinecone":
             from shared.vector_database.pinecone import PineconeService
 
-            if settings.VS_API_KEY:
+            if settings.vector_store.api_key:
                 self.vs_client: VectorStoreClient = PineconeService(
                     embedding,
-                    settings.VS_API_KEY,
+                    settings.vector_store.api_key.get_secret_value(),
                     settings.vector_store.index_name,
                     settings.embedding.size,
+                    settings.vector_store.rerank_top_n,
                 )
             else:
                 raise EnvironmentError("VS_API_KEY not found")

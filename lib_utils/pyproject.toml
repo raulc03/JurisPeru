@@ -1,26 +1,19 @@
-[build-system]
-requires = ["poetry-core>=1.5.0"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry]
-name = "shared"
+name = "lib_utils"
 version = "0.1.0"
-description = "RAG Shared"
 authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
-readme = "README.md"
-packages = [
-    { include = "shared", from = "src" }
-]
+packages = [{ include = "lib_utils", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.14"
+python = "3.13.*"
 langchain = "^0.3.27"
 langchain-anthropic = "^0.3.19"
+torch = {version = "2.5.1+cpu", source = "pytorch-cpu"}
 langchain-huggingface = "^0.3.1"
 langchain-chroma = "^0.2.5"
 langchain-pinecone = "^0.2.11"
-langchain-community = "^0.3.27"
-sentence-transformers = "^5.1.0"
+langchain-community = "^0.3.29"
+sentence-transformers = {version = "^5.1.0", extras = []}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
@@ -30,6 +23,10 @@ mypy = "^1.17.1"
 pytest-cov = "^6.2.1"
 pre-commit = "^4.3.0"
 
+[[tool.poetry.source]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [tool.black]
 line-length = 100
@@ -37,3 +34,7 @@ target-version = ["py311"]
 
 [tool.ruff]
 line-length = 100
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"

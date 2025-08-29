@@ -1,0 +1,33 @@
+services:
+  backend:
+    image: api-image:latest
+    build:
+      context: .
+      dockerfile: api-service/Dockerfile.prod
+      # Usar buildkit para mejor caching
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    ports:
+      - "8000:8000"
+    volumes:
+      # Cache persistente para modelos HuggingFace (opcional si ya está en la imagen)
+      - huggingface_cache:/app/.cache/huggingface
+    environment:
+      # Variables de entorno para optimización
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - HF_HOME=/app/.cache/huggingface
+      - TRANSFORMERS_OFFLINE=1
+    restart: unless-stopped
+    # Limitar recursos si es necesario
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+volumes:
+  # Volumen para cache persistente de modelos
+  huggingface_cache:
+    driver: local

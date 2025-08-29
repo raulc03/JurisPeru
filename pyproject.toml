@@ -9,7 +9,7 @@ description = "RAG Robusto"
 authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
 readme = "README.md"
 packages = [
-    { include = "shared", from = "shared/src" },
+    { include = "lib_utils", from = "lib_utils/src" },
     { include = "app", from = "api-service/src" },
     { include = "pipelines", from = "ingest-pipeline/src" }
 ]
@@ -29,6 +29,8 @@ pydantic-settings = "^2.10.1"
 # Api dependencies
 langsmith = "^0.4.16"
 streamlit = "^1.48.1"
+yaml-settings-pydantic = "^2.3.2"
+
 [tool.poetry.group.api.dependencies]
 fastapi = "^0.116.1"
 uvicorn = {extras = ["standard"], version = "^0.35.0"}

@@ -1,3 +1,4 @@
+import os
 import hashlib
 from typing import List
 from langchain_core.documents import Document
@@ -30,6 +31,19 @@ class TextProcessor:
         self.chunk_size = chunk_size
         self.overlap = overlap
 
+    def _get_basename(self, document: Document) -> str:
+        """
+        Extract the base filename from the document's source metadata.
+
+        Args:
+            document (Document): The document object containing metadata with a 'source' key.
+
+        Returns:
+            str: The base filename extracted from the source path.
+        """
+        source = document.metadata["source"]
+        return os.path.basename(source)
+
     def processor(self, document: Document) -> List[Document]:
         """
         Split a document into chunks using RecursiveCharacterTextSplitter.
@@ -43,5 +57,6 @@ class TextProcessor:
         for chunk in chunks:
             id = sha256_hash(chunk.page_content)
             chunk.id = id
+            chunk.metadata["source"] = self._get_basename(chunk)
 
         return list(chunks)

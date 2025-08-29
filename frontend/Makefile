@@ -1,4 +1,4 @@
-.PHONY: format lint typecheck test run coverage precommit-install precommit-run docker-build
+.PHONY: format lint typecheck test run coverage precommit-install precommit-run docker-build run
 
 format:
 	poetry run black --line-length 100 src tests
@@ -17,7 +17,7 @@ coverage:
 	poetry run pytest tests --cov=src --cov-report=html --cov-fail-under=70
 
 run:
-	poetry run uvicorn src.app.main:app --host 0.0.0.0 --reload
+	PYTHONPATH=src/ poetry run streamlit run src/app/main.py --server.address=0.0.0.0 --server.port=8501
 
 precommit-install:
 	poetry run pre-commit install
@@ -25,3 +25,6 @@ precommit-install:
 
 precommit-run:
 	poetry run pre-commit run --all-files
+
+docker-build:
+	docker build -t Q&A-law:latest .

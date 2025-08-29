@@ -1,0 +1,43 @@
+# -------- Stage 1: Builder --------
+FROM python:3.11-slim AS builder
+
+# Instala Poetry globalmente
+RUN pip install --no-cache-dir poetry
+
+WORKDIR /app
+
+# Copia pyproject.toml y poetry.lock
+COPY pyproject.toml poetry.lock* ./
+
+# Copia el código fuente
+COPY ./src src/
+COPY ./config.yaml ./
+
+# Instala sin crear virtual envs
+# Instala solo las dependencias de producción
+RUN poetry config virtualenvs.create false \ 
+&& poetry install --no-root --only main
+
+# -------- Stage 2: Runtime --------
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+
+# Instalamos los paquetes
+COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+
+# Copiamos los binarios instalados (uvicorn, etc)
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY --from=builder  /app/src .
+
+# Exponer puerto de Streamlit
+EXPOSE 8501
+
+# Healthcheck de Streamlit
+HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+
+ENV PYTHONPATH=.
+
+# ENTRYPOINT: siempre ejecuta Streamlit
+ENTRYPOINT ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

@@ -8,13 +8,14 @@ from prefect import flow, task
 from prefect.task_runners import ConcurrentTaskRunner
 
 from pipelines.config.logging import setup_logging
-from pipelines.config.settings import getSettings
+from pipelines.config.settings import Settings, getSettings
 from pipelines.embeddings.Embeddings import EmbeddingService
 from pipelines.loaders.pdf_loader import PDFLoader
 from pipelines.processors.text_processor import TextProcessor
 from pipelines.storage.storage_manager import StorageManager
 
 
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -44,7 +45,9 @@ def process_documents(document: Document):
     Returns:
         List[Document]: The processed document chunks.
     """
-    return TextProcessor(chunk_size=500, overlap=100).processor(document)
+    return TextProcessor(chunk_size=1000, overlap=100).processor(
+        document
+    )  # TODO: configurable chunk_size, overlap
 
 
 @task
@@ -66,6 +69,7 @@ def get_embedding(provider: Literal["huggingface"] | None, model: str | None = N
 async def store_documents(
     embedding: Embeddings,
     documents: List[Document],
+    settings: Settings,
 ):
     """
     Stores the provided documents asynchronously in the specified database using the embedding function.
@@ -75,11 +79,11 @@ async def store_documents(
         embedding_function (Embeddings): The embedding function to use.
         documents (List[Document]): The documents to store.
     """
-    return await StorageManager(getSettings(), embedding).store_documents(documents)
+    return await StorageManager(settings, embedding).store_documents(documents)
 
 
 @flow(task_runner=ConcurrentTaskRunner())  # type:ignore
-async def document_processing_flow(documents_path: Path):
+async def document_processing_flow(documents_path: Path, settings: Settings):
     """
     Orchestrates the document processing pipeline: ingestion, processing, embedding, and storage.
 
@@ -105,12 +109,12 @@ async def document_processing_flow(documents_path: Path):
 
     embedding = get_embedding("huggingface")
 
-    result = await store_documents(embedding=embedding, documents=all_chunks)
+    result = await store_documents(embedding=embedding, documents=all_chunks, settings=settings)
 
     return result
 
 
 if __name__ == "__main__":
     docs_path = Path(__file__).resolve().parents[3] / "documents/"
-    setup_logging()
-    asyncio.run(document_processing_flow(docs_path))
+    settings = getSettings()
+    asyncio.run(document_processing_flow(docs_path, settings))
