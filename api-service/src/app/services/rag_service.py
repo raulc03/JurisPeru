@@ -27,7 +27,9 @@ class RagService:
         if settings.embedding.provider == "huggingface":
             from langchain_huggingface import HuggingFaceEmbeddings
 
-            self.embedding: Embeddings = HuggingFaceEmbeddings(model_name=settings.embedding.model)
+            self.embedding: Embeddings = HuggingFaceEmbeddings(
+                model_name=settings.embedding.model,
+            )
 
         # VectorStore Client instance
         if settings.vector_store.provider == "pinecone":

@@ -53,7 +53,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app/src \
-    HF_HOME=/app/.cache/huggingface
+    HF_HOME=/app/.cache/huggingface 
 
 WORKDIR /app
 
@@ -65,7 +65,7 @@ RUN mkdir -p /app/.cache/huggingface /app/logs && \
 USER app
 
 # Cachear modelo durante build (como usuario app)
-RUN python -c "from sentence_transformers import SentenceTransformer; print('Descargando modelo...'); model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2'); print('Modelo cacheado exitosamente')"
+RUN python -c "from transformers import AutoModel; AutoModel.from_pretrained('sentence-transformers/all-mpnet-base-v2', cache_dir='/app/.cache/huggingface')"
 
 # Copiar código fuente (después del cache del modelo para mejor layering)
 COPY --chown=app:app lib_utils/src ./lib_utils/src
@@ -81,6 +81,7 @@ EXPOSE 8000
 
 ENV TRANSFORMERS_OFFLINE=1
 
-# Usar exec form para mejor handling de señales
+HEALTHCHECK CMD curl --fail http://localhost:8000/api/health || exit 1
+
 WORKDIR /app/src
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "fastapi", "run", "app/main.py", "--host", "0.0.0.0", "--port", "8000"]

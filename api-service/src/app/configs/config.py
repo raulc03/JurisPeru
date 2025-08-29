@@ -38,6 +38,9 @@ class Settings(BaseYamlSettings):
     # LangSmith config
     langsmith_api_key: str | None = Field(default=None)
 
+    # Logging level
+    log_level: str = "ERROR"
+
     model_config = YamlSettingsConfigDict(yaml_files=config_path.__str__())
 
 

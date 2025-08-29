@@ -1,20 +1,14 @@
-[project]
+[tool.poetry]
 name = "about-law"
 version = "0.1.0"
 description = "Aplicación para consultar sobre códigos penales, civiles, etc."
-readme = "README.md"
-requires-python = ">=3.11"
-authors = [{name = "Raúl Casanova, email = raul.casanova.03@gmail.com"}]
-dependencies = [
-    "streamlit (>=1.49.0,<2.0.0)",
-    "yaml-settings-pydantic (>=2.3.2,<3.0.0)"
-]
-
-[tool.poetry]
+authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
 packages = [{ include = "app", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
+streamlit = "^1.49.1"
+yaml-settings-pydantic = "^2.3.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"

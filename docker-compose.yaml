@@ -1,6 +1,5 @@
 services:
   backend:
-    image: api-image:latest
     build:
       context: .
       dockerfile: api-service/Dockerfile.prod
@@ -20,6 +19,21 @@ services:
       - TRANSFORMERS_OFFLINE=1
     restart: unless-stopped
     # Limitar recursos si es necesario
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+  frontend:
+    build: 
+      context: ./frontend/
+      dockerfile: Dockerfile.prod
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
     deploy:
       resources:
         limits:

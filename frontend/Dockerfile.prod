@@ -1,43 +1,49 @@
 # -------- Stage 1: Builder --------
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
-# Instala Poetry globalmente
-RUN pip install --no-cache-dir poetry
+RUN pip install --no-cache-dir poetry \ 
+    && poetry config virtualenvs.create false
 
 WORKDIR /app
 
-# Copia pyproject.toml y poetry.lock
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml poetry.lock ./
 
-# Copia el código fuente
-COPY ./src src/
+RUN poetry install --no-root --only main
+
+COPY src/ ./src
 COPY ./config.yaml ./
 
-# Instala sin crear virtual envs
-# Instala solo las dependencias de producción
-RUN poetry config virtualenvs.create false \ 
-&& poetry install --no-root --only main
+RUN poetry install --only main
 
 # -------- Stage 2: Runtime --------
-FROM python:3.11-slim AS runtime
+FROM python:3.13-slim AS runtime
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && apt-get autoremove -y
+
+RUN useradd --create-home --shell /bin/bash app
+
+COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app/src
 
 WORKDIR /app
 
-# Instalamos los paquetes
-COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+COPY --chown=app:app src/ ./src
+COPY --chown=app:app config.yaml ./
 
-# Copiamos los binarios instalados (uvicorn, etc)
-COPY --from=builder /usr/local/bin /usr/local/bin
+RUN find /home/app/.local -type d -name __pycache__ -exec rm -rf {} + || true && \
+    find /home/app/.local -type f -name "*.pyc" -delete || true
 
-COPY --from=builder  /app/src .
-
-# Exponer puerto de Streamlit
 EXPOSE 8501
 
-# Healthcheck de Streamlit
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
-ENV PYTHONPATH=.
-
-# ENTRYPOINT: siempre ejecuta Streamlit
-ENTRYPOINT ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+WORKDIR /app/src
+ENTRYPOINT ["python", "-m", "streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

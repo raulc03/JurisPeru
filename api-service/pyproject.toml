@@ -18,7 +18,7 @@ langchain-chroma = "^0.2.5"
 langchain-pinecone = "^0.2.11"
 langchain-community = "^0.3.29"
 pydantic-settings = "^2.10.1"
-fastapi = "^0.116.1"
+fastapi = {extras = ["standard"], version = "^0.116.1"}
 uvicorn = {extras = ["standard"], version = "^0.35.0"}
 pydantic = "^2.11.7"
 yaml-settings-pydantic = "^2.3.2"
@@ -31,9 +31,6 @@ ruff = "^0.12.9"
 mypy = "^1.17.1"
 pytest-cov = "^6.2.1"
 pre-commit = "^4.3.0"
-
-[tool.poetry.requires-plugins]
-poetry-plugin-export = ">=1.8"
 
 [[tool.poetry.source]]
 name = "pytorch-cpu"

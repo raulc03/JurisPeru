@@ -1,6 +1,7 @@
 import logging
 import logging.config
 from pathlib import Path
+from app.configs.config import getSettings
 
 LOGS_DIR = Path(__file__).resolve().parents[2] / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
@@ -30,7 +31,7 @@ LOGGING_CONFIG = {
         },
     },
     "root": {
-        "level": "INFO",
+        "level": getSettings().log_level,
         "handlers": ["console", "file"],
     },
 }
