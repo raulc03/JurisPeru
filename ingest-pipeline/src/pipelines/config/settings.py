@@ -3,7 +3,8 @@ from functools import lru_cache
 from pydantic import BaseModel, Field, SecretStr
 from yaml_settings_pydantic import BaseYamlSettings, YamlSettingsConfigDict
 
-config_file = Path(__file__).resolve().parents[3] / "config.yaml"
+config_path = Path(__file__).resolve().parents[3] / "config.yaml"
+yaml_files = config_path.__str__() if config_path.exists() else ""
 
 
 class LLMConfig(BaseModel):
@@ -38,7 +39,7 @@ class Settings(BaseYamlSettings):
     # LangSmith config
     langsmith_api_key: str | None = Field(default=None)
 
-    model_config = YamlSettingsConfigDict(yaml_files=config_file.__str__())
+    model_config = YamlSettingsConfigDict(yaml_files=yaml_files)
 
 
 @lru_cache

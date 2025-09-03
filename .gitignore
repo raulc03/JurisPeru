@@ -8,3 +8,5 @@ documents/
 config.yaml
 htmlcov/
 .coverage
+.ruff_cache
+.mypy_cache

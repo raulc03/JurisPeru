@@ -9,17 +9,47 @@ on:
       - main
 
 jobs:
-  build:
+  lib-utils:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: 3.13
+      - run: pip install poetry
+      - run: cd lib_utils && poetry install
+      - run: make -C lib_utils all
 
-      - name: Install dependencies
-        run: pip install poetry
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+      - run: pip install poetry
+      - run: cd api-service && poetry install
+      - run: make -C api-service all
 
-      - name: Run validations
-        run: |
-          make all
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+      - run: pip install poetry
+      - run: cd frontend && poetry install
+      - run: make -C frontend all
+
+  ingest-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+      - run: pip install poetry
+      - run: cd ingest-pipeline && poetry install
+      - run: make -C ingest-pipeline all
+
