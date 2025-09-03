@@ -15,6 +15,7 @@ class Retrieve(BaseModel):
 class Settings(BaseYamlSettings):
     api_url: str = "http://localhost:8000/api"
     retrieve: Retrieve = Retrieve()
+    log_level: str = "ERROR"
 
     model_config = YamlSettingsConfigDict(
         yaml_files=config_path if config_path.exists() else config_example_path

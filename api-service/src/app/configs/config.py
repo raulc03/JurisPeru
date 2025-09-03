@@ -21,9 +21,10 @@ class VectorStoreConfig(BaseModel):
 
 
 class EmbeddingConfig(BaseModel):
-    provider: str = "huggingface"
-    model: str = "sentence-transformers/all-roberta-large-v1"
-    size: int = 1024
+    api_key: SecretStr | None = None
+    provider: str = "openai"
+    model: str = "text-embedding-3-small"
+    size: int = 1536
 
 
 class Settings(BaseYamlSettings):
@@ -48,5 +49,5 @@ class Settings(BaseYamlSettings):
 
 
 @lru_cache
-def getSettings():
+def get_settings():
     return Settings()

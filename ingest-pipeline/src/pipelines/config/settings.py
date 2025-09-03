@@ -21,6 +21,7 @@ class VectorStoreConfig(BaseModel):
 
 
 class EmbeddingConfig(BaseModel):
+    api_key: SecretStr | None = None
     provider: str = "huggingface"
     model: str = "sentence-transformers/all-roberta-large-v1"
     size: int = 1024

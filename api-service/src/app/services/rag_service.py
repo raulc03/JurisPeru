@@ -1,7 +1,7 @@
 import logging
 from typing import Any, AsyncGenerator
-from lib_utils.interfaces.vector_store import VectorStoreClient
 from langchain_core.embeddings import Embeddings
+from lib_utils.interfaces.vector_store import VectorStoreClient
 from langchain.chat_models import init_chat_model
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -29,6 +29,14 @@ class RagService:
 
             self.embedding: Embeddings = HuggingFaceEmbeddings(
                 model_name=settings.embedding.model,
+            )
+        elif settings.embedding.provider == "openai":
+            from langchain_openai import OpenAIEmbeddings
+
+            self.embedding = OpenAIEmbeddings(
+                model=settings.embedding.model,
+                dimensions=settings.embedding.size,
+                api_key=settings.embedding.api_key,
             )
 
         # VectorStore Client instance
@@ -93,10 +101,12 @@ class RagService:
                 if event["event"] == "on_chat_model_stream":
                     data = event["data"].get("chunk")
                     if data:
+                        logger.debug(f"Yielding: {data.text()}")
                         yield AskResponse(stage="tok", data=data.text()).model_dump_json()
                 elif event["event"] == "on_chat_model_end":
                     data = event["data"].get("output")
                     if data:
+                        logger.debug(f"Yielding data: {data.text()}\nContexts: {retrieved_docs}")
                         yield AskResponse(
                             stage="end", data=data.text(), contexts=retrieved_docs
                         ).model_dump_json()

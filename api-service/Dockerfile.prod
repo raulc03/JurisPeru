@@ -52,22 +52,19 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Variables de entorno para optimizar Python
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app/src \
-    HF_HOME=/app/.cache/huggingface 
+    PYTHONPATH=/app/src
 
 WORKDIR /app
 
 # Crear directorio de cache y configurar permisos
-RUN mkdir -p /app/.cache/huggingface /app/logs && \
-    chown -R app:app /app/.cache /app/logs
+RUN mkdir -p  /app/logs && \
+    chown -R app:app /app/logs
 
 # Cambiar a usuario no-root para descargar modelo
 USER app
 
-# Cachear modelo durante build (como usuario app)
-RUN python -c "from transformers import AutoModel; AutoModel.from_pretrained('sentence-transformers/all-mpnet-base-v2', cache_dir='/app/.cache/huggingface')"
 
-# Copiar código fuente (después del cache del modelo para mejor layering)
+# Copiar código fuente
 COPY --chown=app:app lib_utils/src ./lib_utils/src
 COPY --chown=app:app lib_utils/pyproject.toml ./lib_utils/
 COPY --chown=app:app api-service/src ./src  
@@ -79,7 +76,6 @@ RUN find /home/app/.local -type d -name __pycache__ -exec rm -rf {} + || true &&
 
 EXPOSE 8000
 
-ENV TRANSFORMERS_OFFLINE=1
 
 HEALTHCHECK CMD curl --fail http://localhost:8000/api/health || exit 1
 

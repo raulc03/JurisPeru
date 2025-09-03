@@ -5,9 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 setup_logging()
-app = FastAPI(title="API Law Services")  # TODO: lifespan: warmup the embedding model
+app = FastAPI(title="API Law Services")
 
-origins = ["http://localhost:8501"]
+origins = [
+    "http://localhost:8501",
+    "http://localhost:7860",
+    "http://127.0.0.1:7860",
+]
 
 app.add_middleware(
     CORSMiddleware,

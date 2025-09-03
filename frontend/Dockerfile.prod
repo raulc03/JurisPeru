@@ -41,9 +41,9 @@ COPY --chown=app:app config.yaml ./
 RUN find /home/app/.local -type d -name __pycache__ -exec rm -rf {} + || true && \
     find /home/app/.local -type f -name "*.pyc" -delete || true
 
-EXPOSE 8501
+EXPOSE 7860
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 WORKDIR /app/src
-ENTRYPOINT ["python", "-m", "streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["python", "-m", "streamlit", "run", "app/main.py", "--server.port=7860", "--server.address=0.0.0.0"]

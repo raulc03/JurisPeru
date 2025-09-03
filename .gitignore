@@ -10,3 +10,4 @@ htmlcov/
 .coverage
 .ruff_cache
 .mypy_cache
+**.log

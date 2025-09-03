@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from pathlib import Path
-from typing import List, Literal
+from typing import List
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from prefect import flow, task
@@ -39,11 +39,11 @@ def process_documents(document: Document):
 
 
 @task
-def get_embedding(provider: Literal["huggingface"] | None, model: str | None = None):
+def get_embedding(settings: Settings):
     """
     Retrieves the embedding model from the specified provider.
     """
-    return EmbeddingService(provider, model).get_embedding_model()
+    return EmbeddingService().get_embedding_model(settings)
 
 
 @task
@@ -80,11 +80,13 @@ async def document_processing_flow(documents_path: Path, settings: Settings):
         chunk = process_documents(doc)  # type:ignore
         all_chunks.extend(chunk)
 
-    embedding = get_embedding("huggingface")
-
-    result = await store_documents(embedding=embedding, documents=all_chunks, settings=settings)  # type: ignore[misc]
-
-    return result
+    try:
+        embedding = get_embedding(settings)
+        result = await store_documents(embedding=embedding, documents=all_chunks, settings=settings)  # type: ignore[misc]
+        return result
+    except Exception as e:
+        logger.exception(str(e))
+        return
 
 
 if __name__ == "__main__":

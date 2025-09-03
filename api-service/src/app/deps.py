@@ -1,11 +1,11 @@
 from typing import Annotated
 from fastapi import Depends
 
-from app.configs.config import Settings, getSettings
+from app.configs.config import Settings, get_settings
 from app.services.rag_service import RagService
 
 
-SettingsDep = Annotated[Settings, Depends(getSettings)]
+SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 
 class RagServiceSingleton:

@@ -10,19 +10,18 @@ packages = [
 [tool.poetry.dependencies]
 python = "3.13.*"
 lib-utils = {path = "../lib_utils", develop = true}
-langchain = "^0.3.27"
-langchain-anthropic = "^0.3.19"
-torch = {version = "2.5.1+cpu", source = "pytorch-cpu"}
-langchain-huggingface = "^0.3.1"
-langchain-chroma = "^0.2.5"
-langchain-pinecone = "^0.2.11"
-langchain-community = "^0.3.29"
+langchain = "~0.3.27"
+langchain-anthropic = "~0.3.19"
+langchain-huggingface = "~0.3.1"
+langchain-chroma = "~0.2.5"
+langchain-pinecone = "~0.2.11"
+langchain-community = "~0.3.29"
 pydantic-settings = "^2.10.1"
 fastapi = {extras = ["standard"], version = "^0.116.1"}
 uvicorn = {extras = ["standard"], version = "^0.35.0"}
 pydantic = "^2.11.7"
 yaml-settings-pydantic = "^2.3.2"
-sentence-transformers = {version = "^5.1.0", extras = []}
+langchain-openai = "~0.3.32"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
@@ -31,11 +30,6 @@ ruff = "^0.12.9"
 mypy = "^1.17.1"
 pytest-cov = "^6.2.1"
 pre-commit = "^4.3.0"
-
-[[tool.poetry.source]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
 
 [tool.black]
 line-length = 100

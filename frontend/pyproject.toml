@@ -6,7 +6,7 @@ authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
 packages = [{ include = "app", from = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.14"
+python = "3.13.*"
 streamlit = "^1.49.1"
 yaml-settings-pydantic = "^2.3.2"
 pytest-playwright = "^0.7.0"
@@ -15,7 +15,7 @@ pytest-playwright = "^0.7.0"
 pytest = "^8.4.1"
 black = "^25.1.0"
 ruff = "^0.12.9"
-mypy = "^1.17.1"
+mypy = "1.17.0"
 pytest-cov = "^6.2.1"
 pre-commit = "^4.3.0"
 types-requests = "^2.32.4.20250809"
