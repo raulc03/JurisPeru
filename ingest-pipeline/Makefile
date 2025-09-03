@@ -1,4 +1,7 @@
-.PHONY: format lint typecheck test run coverage
+.PHONY: install format lint typecheck test run coverage
+
+install:
+	poetry install
 
 format:
 	poetry run black --line-length 100 src
@@ -14,4 +17,4 @@ run:
 	nohup poetry run prefect server start &
 	poetry run python src/pipelines/orchestration/pipeline.py
 
-all: format lint typecheck
+all: install format lint typecheck

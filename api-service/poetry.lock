@@ -2057,7 +2057,7 @@ optional = false
 python-versions = "3.13.*"
 groups = ["main"]
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 langchain = "^0.3.27"
@@ -6160,4 +6160,4 @@ cffi = ["cffi (>=1.17) ; python_version >= \"3.13\" and platform_python_implemen
 [metadata]
 lock-version = "2.1"
 python-versions = "3.13.*"
-content-hash = "a4b8a26fbd4ac0d9ddbf689bf4d60d8393ccb60d4f4dc245da18985a3a31f7d1"
+content-hash = "4ae99eecf5094bbe06bcc6a8584ba8536a00630aaa1760bfe8d1c35ed764350e"

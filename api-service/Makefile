@@ -1,4 +1,7 @@
-.PHONY: format lint typecheck test run coverage docker-build
+.PHONY: install format lint typecheck test run coverage docker-build
+
+install:
+	poetry install
 
 format:
 	poetry run black --line-length 100 src tests
@@ -19,4 +22,4 @@ run:
 	poetry run uvicorn src.app.main:app --host 0.0.0.0 --reload
 
 
-all: format lint typecheck test
+all: install format lint typecheck test

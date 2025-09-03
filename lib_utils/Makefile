@@ -1,4 +1,7 @@
-.PHONY: format lint typecheck
+.PHONY: install format lint typecheck
+
+install:
+	poetry install
 
 format:
 	poetry run black --line-length 100 src
@@ -9,4 +12,4 @@ lint:
 typecheck:
 	poetry run mypy src
 
-all: format lint typecheck
+all: install format lint typecheck

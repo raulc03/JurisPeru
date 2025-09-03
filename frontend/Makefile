@@ -1,4 +1,7 @@
-.PHONY: format lint typecheck test run coverage
+.PHONY: install format lint typecheck test run coverage
+
+install:
+	poetry install
 
 format:
 	poetry run black --line-length 100 src tests
@@ -18,4 +21,4 @@ coverage:
 run:
 	PYTHONPATH=src/ poetry run streamlit run src/app/main.py --server.address=0.0.0.0 --server.port=8501
 
-all: format lint typecheck test
+all: install format lint typecheck test
