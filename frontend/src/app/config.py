@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from yaml_settings_pydantic import BaseYamlSettings, YamlSettingsConfigDict
 
 config_path = Path(__file__).resolve().parents[2] / "config.yaml"
-yaml_files = config_path.__str__() if config_path.exists() else ""
+config_example_path = Path(__file__).resolve().parents[2] / "config.example.yaml"
 
 
 class Retrieve(BaseModel):
@@ -16,7 +16,9 @@ class Settings(BaseYamlSettings):
     api_url: str = "http://localhost:8000/api"
     retrieve: Retrieve = Retrieve()
 
-    model_config = YamlSettingsConfigDict(yaml_files=yaml_files)
+    model_config = YamlSettingsConfigDict(
+        yaml_files=config_path if config_path.exists() else config_example_path
+    )
 
 
 @lru_cache

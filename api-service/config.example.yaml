@@ -1,0 +1,15 @@
+llm:
+  provider: anthropic
+  name: claude-3-5-haiku-latest
+
+vector_store:
+  provider: pinecone
+  index_name: informacion-juridica-v1
+  rerank_top_n: 5
+
+embedding:
+  provider: huggingface
+  model: sentence-transformers/all-roberta-large-v1
+  size: 1024
+
+log_level: ERROR

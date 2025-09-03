@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, SecretStr
 from yaml_settings_pydantic import BaseYamlSettings, YamlSettingsConfigDict
 
 config_path = Path(__file__).resolve().parents[3] / "config.yaml"
-yaml_files = config_path.__str__() if config_path.exists() else ""
+config_example_path = Path(__file__).resolve().parents[3] / "config.example.yaml"
 
 
 class LLMConfig(BaseModel):
@@ -42,7 +42,9 @@ class Settings(BaseYamlSettings):
     # Logging level
     log_level: str = "ERROR"
 
-    model_config = YamlSettingsConfigDict(yaml_files=yaml_files)
+    model_config = YamlSettingsConfigDict(
+        yaml_files=config_path if config_path.exists() else config_example_path
+    )
 
 
 @lru_cache
