@@ -1,102 +1,169 @@
-from fastapi import FastAPI
+import json
+import pytest
+from typing import Any
+from contextlib import contextmanager
+
 from fastapi.testclient import TestClient
-from langchain_core.documents.base import Document
 
-from app.api.routes import ask
 from app.deps import get_rag_service
-
-from unittest.mock import AsyncMock, MagicMock
-
-
-app = FastAPI()
-app.include_router(ask.router)
-
-valid_request = {"query": "What is RAG?", "temperature": 0.5}
+from app.schemas.ask import AskResponse
+from app.main import app
 
 
-class DummyRag:
-    async def run_rag_pipeline(self, request, search_type):
-        _ = (request, search_type)
-        return (
-            "RAG is Retrieval-Augmented Generation.",
-            [Document(page_content="context1"), Document(page_content="context2")],
+class FakeRag:
+    def __init__(self):
+        self.request = None
+        self.retrieval_type = None
+
+    def run_rag_pipeline_stream(self, ask_request, retrieval_type) -> Any:
+        self.request = ask_request
+        self.retrieval_type = retrieval_type
+
+        def sse(data: AskResponse) -> bytes:
+            return f"{json.dumps(data.model_dump())}\n\n".encode("utf-8")
+
+        yield sse(AskResponse(stage="tok", data=""))
+        yield sse(AskResponse(stage="tok", data="Hello"))
+        yield sse(AskResponse(stage="tok", data="Hello World"))
+        yield sse(
+            AskResponse(
+                stage="end",
+                data="Hello World!",
+                contexts=[
+                    {
+                        "document": "Document 1",
+                        "source": "hello_world.pdf",
+                        "page": 2,
+                        "total_pages": 40,
+                        "score": 0.9,
+                        "text": "Hello World!",
+                    },
+                    {
+                        "document": "Document 2",
+                        "source": "hello_world.pdf",
+                        "page": 9,
+                        "total_pages": 40,
+                        "score": 0.7,
+                        "text": "Hello Mini World!",
+                    },
+                ],
+            )
         )
 
 
-class DummyRagNoContext:
-    async def run_rag_pipeline(self, request, search_type):
-        _ = (request, search_type)
-        return ("No context found", None)
+class FakeRagValueError:
+    def run_rag_pipeline_stream(self, ask_request, retrieval_type):
+        _ = (ask_request, retrieval_type)
+        raise ValueError("boom!")
 
 
-class DummyRagError:
-    async def run_rag_pipeline(self, request, search_type):
-        _ = (request, search_type)
-        raise Exception("RAG error")
+class FakeRagException:
+    def run_rag_pipeline_stream(self, ask_request, retrieval_type):
+        _ = (ask_request, retrieval_type)
+        raise RuntimeError("kaboom!")
 
 
-def override_rag():
-    return DummyRag()
+@contextmanager
+def override_rag_dependencie(fake):
+    app.dependency_overrides[get_rag_service] = lambda: fake
+    try:
+        yield
+    finally:
+        app.dependency_overrides.pop(get_rag_service, None)
 
 
-def override_rag_no_context():
-    return DummyRagNoContext()
+def _iter_stream(resp):
+    """
+    Iterate over a streaming HTTP response, yielding parsed JSON objects.
+    """
+    try:
+        raw_chunk = next(resp.iter_raw())
+    except StopIteration:
+        return
+    except Exception as exc:
+        raise RuntimeError(f"Failed to read from response stream: {exc}")
+
+    try:
+        decoded_data = raw_chunk.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"Failed to decode response chunk: {exc}")
+
+    for entry in decoded_data.split("\n\n"):
+        entry = entry.strip()
+        if not entry:
+            continue
+        try:
+            yield json.loads(entry)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Failed to parse JSON from stream entry: {exc}\nEntry: {entry}")
 
 
-def override_rag_error():
-    return DummyRagError()
+##############################################
+# Happy-path streaming tests
+##############################################
+@pytest.mark.parametrize(
+    "payload,expect_k,expect_lang",
+    [
+        ({"query": "hola"}, 12, "spanish"),  # defaults
+        ({"query": "hi", "k": 5, "temperature": 0.2, "language": "english"}, 5, "english"),
+        ({"query": "auto lang", "language": "auto"}, 12, "auto"),
+    ],
+)
+def test_streaming_happy_path(payload, expect_k, expect_lang):
+    fake_rag = FakeRag()
+    with override_rag_dependencie(fake_rag):
+        client = TestClient(app)
+        with client.stream("POST", "/api/ask", json=payload) as resp:
+            assert resp.status_code == 200
+            events = [re for re in _iter_stream(resp)]
+
+            assert events[0]["stage"] == "tok"
+            assert events[1]["stage"] == "tok"
+            assert events[2]["stage"] == "tok"
+            assert events[3]["stage"] == "end"
+            assert events[3]["data"] == "Hello World!"
+            assert isinstance(events[3].get("contexts"), list)
+
+            # Request validation
+            assert fake_rag.retrieval_type == "mmr"
+            assert getattr(fake_rag.request, "k", None) == expect_k
+            assert getattr(fake_rag.request, "language", None) == expect_lang
 
 
-client = TestClient(app)
+##############################################
+# Validation (422) tests
+##############################################
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {},  # missing query
+        {"query": None},  # invalid type
+        {"query": "hi", "language": "german"},  # invalid name
+        {"query": "hi", "k": "auto"},  # invalid k
+    ],
+)
+def test_validation_errors_422(payload):
+    fake_rag = FakeRag()
+    with override_rag_dependencie(fake_rag):
+        client = TestClient(app)
+        resp = client.post("/api/ask", json=payload)
+        assert resp.status_code == 422
 
 
-def test_ask_success():
-    app.dependency_overrides[get_rag_service] = override_rag
-    response = client.post("/ask/", json=valid_request)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["answer"] == "RAG is Retrieval-Augmented Generation."
-    assert data["contexts"][0]["page_content"] == "context1"
-    assert data["contexts"][1]["page_content"] == "context2"
-    app.dependency_overrides = {}
-
-
-def test_ask_no_context():
-    app.dependency_overrides[get_rag_service] = override_rag_no_context
-    response = client.post("/ask/", json=valid_request)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["answer"] == "No context found"
-    assert data["contexts"] is None
-    app.dependency_overrides = {}
-
-
-def test_ask_rag_error():
-    app.dependency_overrides[get_rag_service] = override_rag_error
-    response = client.post("/ask/", json=valid_request)
-    assert response.status_code == 500
-    app.dependency_overrides = {}
-
-
-def test_ask_invalid_request():
-    app.dependency_overrides[get_rag_service] = override_rag
-    bad_request = {"temperature": 0.5}
-    response = client.post("/ask/", json=bad_request)
-    assert response.status_code == 422
-    app.dependency_overrides = {}
-
-
-def test_run_rag_pipeline_called():
-    mock_rag = MagicMock()
-    mock_rag.run_rag_pipeline = AsyncMock(return_value=("answer", [Document(page_content="ctx")]))
-
-    def override():
-        return mock_rag
-
-    app.dependency_overrides[get_rag_service] = override
-    client.post("/ask/", json=valid_request)
-    mock_rag.run_rag_pipeline.assert_awaited_once()
-    args, _ = mock_rag.run_rag_pipeline.call_args
-    assert args[0].query == valid_request["query"]
-    assert args[1] == "mmr"
-    app.dependency_overrides = {}
+##############################################
+# Error handling (500) tests
+##############################################
+@pytest.mark.parametrize(
+    "payload,fake,expected_detail",
+    [
+        ({"query": "hi"}, FakeRagValueError(), "boom!"),
+        ({"query": "hi"}, FakeRagException(), "kaboom!"),
+    ],
+)
+def test_internal_errors(payload, fake, expected_detail):
+    with override_rag_dependencie(fake):
+        client = TestClient(app)
+        resp = client.post("/api/ask", json=payload)
+        assert resp.status_code == 500
+        data = resp.json()
+        assert data.get("detail") == expected_detail

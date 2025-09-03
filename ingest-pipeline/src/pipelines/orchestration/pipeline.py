@@ -23,12 +23,6 @@ logger = logging.getLogger(__name__)
 async def ingest_documents(file_path: str):
     """
     Ingests documents from the given file path using PDFLoader if supported.
-
-    Args:
-        file_path (str): The path to the file to ingest.
-
-    Returns:
-        List[Document]: The loaded documents if the file is supported.
     """
     if PDFLoader().supports(file_path):
         return await PDFLoader().load(file_path)
@@ -38,12 +32,6 @@ async def ingest_documents(file_path: str):
 def process_documents(document: Document):
     """
     Processes a document by chunking its text using TextProcessor.
-
-    Args:
-        document (Document): The document to process.
-
-    Returns:
-        List[Document]: The processed document chunks.
     """
     return TextProcessor(chunk_size=1000, overlap=100).processor(
         document
@@ -54,13 +42,6 @@ def process_documents(document: Document):
 def get_embedding(provider: Literal["huggingface"] | None, model: str | None = None):
     """
     Retrieves the embedding model from the specified provider.
-
-    Args:
-        provider (Literal["huggingface"] | None): The embedding provider.
-        model (str | None, optional): The model name. Defaults to None.
-
-    Returns:
-        Callable: The embedding function/model.
     """
     return EmbeddingService(provider, model).get_embedding_model()
 
@@ -73,11 +54,6 @@ async def store_documents(
 ):
     """
     Stores the provided documents asynchronously in the specified database using the embedding function.
-
-    Args:
-        database (Literal["chroma"]): The database to use for storage.
-        embedding_function (Embeddings): The embedding function to use.
-        documents (List[Document]): The documents to store.
     """
     return await StorageManager(settings, embedding).store_documents(documents)
 
@@ -86,9 +62,6 @@ async def store_documents(
 async def document_processing_flow(documents_path: Path, settings: Settings):
     """
     Orchestrates the document processing pipeline: ingestion, processing, embedding, and storage.
-
-    Args:
-        documents_path (Path): The path to the directory containing documents.
     """
     documents = [
         doc
@@ -109,7 +82,7 @@ async def document_processing_flow(documents_path: Path, settings: Settings):
 
     embedding = get_embedding("huggingface")
 
-    result = await store_documents(embedding=embedding, documents=all_chunks, settings=settings)
+    result = await store_documents(embedding=embedding, documents=all_chunks, settings=settings)  # type: ignore[misc]
 
     return result
 

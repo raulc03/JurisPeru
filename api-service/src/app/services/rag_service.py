@@ -64,10 +64,12 @@ class RagService:
         """
         Retrieve documents using the vector store client and optionally rerank them.
         """
-        docs = await self.vs_client.retrieve(ask_request.query, retrieval_type, ask_request.k)
-        docs = await self.vs_client.rerank_context(docs, ask_request.query)
+        docs_retrieved = await self.vs_client.retrieve(
+            ask_request.query, retrieval_type, ask_request.k
+        )
+        docs_reranked = await self.vs_client.rerank_context(docs_retrieved, ask_request.query)
 
-        return docs
+        return docs_reranked
 
     async def run_rag_pipeline_stream(
         self, ask_request: AskRequest, retrieval_type: str

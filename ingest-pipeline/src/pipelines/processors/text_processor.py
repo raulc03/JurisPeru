@@ -49,7 +49,9 @@ class TextProcessor:
         Split a document into chunks using RecursiveCharacterTextSplitter.
         """
         splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size, chunk_overlap=self.overlap, is_separator_regex=True
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.overlap,
+            is_separator_regex=True,
         )
         chunks = splitter.split_documents([document])
         # For each chunk in the list, generate a unique ID using the SHA-256 hash of its page_content.

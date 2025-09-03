@@ -3,6 +3,7 @@ name = "lib_utils"
 version = "0.1.0"
 authors = ["Raúl Casanova raul.casanova.03@gmail.com"]
 packages = [{ include = "lib_utils", from = "src" }]
+include = ["src/lib_utils/py.typed"]
 
 [tool.poetry.dependencies]
 python = "3.13.*"
@@ -30,7 +31,7 @@ priority = "explicit"
 
 [tool.black]
 line-length = 100
-target-version = ["py311"]
+target-version = ["py313"]
 
 [tool.ruff]
 line-length = 100

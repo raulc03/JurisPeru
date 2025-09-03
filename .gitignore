@@ -1,7 +1,10 @@
 __pycache__/
-
+.benchmarks/
+.poetry/
+.pytest_cache/
+.venv/
 logs/
-
 documents/
-
 config.yaml
+htmlcov/
+.coverage

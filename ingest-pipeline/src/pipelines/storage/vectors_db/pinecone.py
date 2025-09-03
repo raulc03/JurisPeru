@@ -12,17 +12,17 @@ def get_pinecone_bd(embedding_function: Embeddings):
     Creates the index if it does not exist.
     """
     settings = getSettings()
-    if not settings.PINECONE_API_KEY:
+    if not settings.vector_store.api_key:
         raise ValueError("Pinecone api key not found")
 
-    pc: Pinecone = Pinecone(api_key=settings.PINECONE_API_KEY)
-    index_name = settings.INDEX_NAME
+    pc: Pinecone = Pinecone(api_key=settings.vector_store.api_key.get_secret_value())
+    index_name = settings.vector_store.index_name
     existing_indexes = [index_info["name"] for index_info in pc.list_indexes()]
 
     if index_name not in existing_indexes:
         pc.create_index(
             name=index_name,
-            dimension=settings.MODEL_SIZE,
+            dimension=settings.embedding.size,
             metric="cosine",
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             deletion_protection="enabled",  # Defaults to "disabled"

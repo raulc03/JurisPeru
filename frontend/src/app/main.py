@@ -1,8 +1,7 @@
-import json
-import requests
 import streamlit as st
 
 from app.config import get_settings
+from app.services.utils import stream_data
 
 
 settings = get_settings()
@@ -10,24 +9,6 @@ settings = get_settings()
 st.title("Preguntas y Respuesta sobre Códigos legales")
 
 query = st.text_area("Realiza tu pregunta")
-
-payload = {"query": "", "k": settings.retrieve.k, "temperature": settings.retrieve.temperature}
-
-
-def stream_data(query):
-    contexts = []
-    payload["query"] = query
-    with requests.post(f"{settings.api_url}/ask/", json=payload, stream=True) as r:
-        for chunk in r.iter_content(chunk_size=None):
-            if chunk:
-                response = json.loads(chunk.decode("utf-8"))  # Deserialize JSON
-                stage = response.get("stage")
-                data = response.get("data")
-                if stage == "tok":
-                    yield data
-                elif stage == "end":
-                    contexts = response.get("contexts", [])
-                    st.session_state["contexts"] = contexts
 
 
 if st.button("Enviar") or query:
@@ -37,7 +18,7 @@ else:
 
 if show_response:
     st.session_state.clear()
-    st.write_stream(stream_data(query))
+    st.write_stream(stream_data(query, settings))
     if "contexts" in st.session_state and st.session_state["contexts"]:
         with st.expander("📚 Documentos utilizados"):
             for i, ctx in enumerate(st.session_state["contexts"], 1):

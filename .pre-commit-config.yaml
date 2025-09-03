@@ -1,0 +1,20 @@
+repos:
+  - repo: local
+    hooks:
+      - id: backend-all
+        name: Run all validations for backend (format, lint, typecheck, tests)
+        entry: make -C api-service all
+        language: system
+        pass_filenames: false
+
+      - id: frontend-all
+        name: Run all validations for frontend (format, lint, typecheck, tests)
+        entry: make -C frontend all
+        language: system
+        pass_filenames: false
+
+      - id: ingest-pipeline-all
+        name: Run all validation for ingest pipeline (format, lint, typecheck)
+        entry: make -C ingest-pipeline all
+        language: system
+        pass_filenames: false

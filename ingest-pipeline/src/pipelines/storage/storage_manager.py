@@ -2,7 +2,7 @@ import logging
 
 from langchain_core.documents.base import Document
 from langchain_core.embeddings import Embeddings
-from shared.interfaces.vector_store import VectorStoreClient
+from lib_utils.interfaces.vector_store import VectorStoreClient
 
 from pipelines.config.settings import Settings
 
@@ -19,7 +19,7 @@ class StorageManager:
         Initialize the StorageManager with a specified database and embedding function.
         """
         if settings.vector_store.provider == "pinecone":
-            from shared.vector_database.pinecone import PineconeService
+            from lib_utils.vector_database.pinecone import PineconeService
 
             if settings.vector_store.api_key:
                 self.vs_client: VectorStoreClient = PineconeService(

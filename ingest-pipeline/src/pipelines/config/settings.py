@@ -42,5 +42,5 @@ class Settings(BaseYamlSettings):
 
 
 @lru_cache
-def getSettings():
+def getSettings() -> Settings:
     return Settings()
